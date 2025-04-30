@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marks Eligibility Analyzer</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-hover: #2980b9;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --text-color: #2c3e50;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        h1, h2, h3 {
+            color: var(--text-color);
+            margin-top: 0;
+        }
+        
+        .upload-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+        
+        .file-input-wrapper {
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input-label:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        #pdfUpload {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+            box-shadow: var(--box-shadow);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .eligibility-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.8em;
+        }
+        
+        .eligible {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .not-eligible {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(52, 152, 219, 0.2);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .error-message {
+            background-color: #fdecea;
+            color: var(--error-color);
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .success-message {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .section-title {
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f1f1;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Marks Eligibility Analyzer</h1>
+        <p style="text-align: center;">Upload your marks PDF to analyze student eligibility</p>
+        
+        <div class="upload-section">
+            <h2>Upload Marks PDF</h2>
+            
+            <div class="file-input-wrapper">
+                <label class="file-input-label">
+                    Choose PDF File
+                    <input type="file" id="pdfUpload" accept=".pdf">
+                </label>
+                <div class="file-name" id="fileName">No file selected</div>
+            </div>
+            
+            <button id="analyzeBtn" disabled>Analyze Marks</button>
+            
+            <div class="message error-message" id="errorMsg"></div>
+            <div class="message success-message" id="successMsg"></div>
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Processing your PDF...</p>
+            </div>
+        </div>
+        
+        <div id="resultsSection" style="display: none;">
+            <h2 class="section-title">Results Summary</h2>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Overall Statistics</h3>
+                    <p><strong>Total Students:</strong> <span class="stat-value" id="totalStudents">0</span></p>
+                    <p><strong>Eligible Students:</strong> <span class="stat-value" id="eligibleCount">0</span></p>
+                    <p><strong>Not Eligible:</strong> <span class="stat-value" id="notEligibleCount">0</span></p>
+                    <p><strong>Pass Percentage:</strong> <span class="stat-value" id="passPercentage">0</span>%</p>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Theory Marks</h3>
+                    <p><strong>Average:</strong> <span class="stat-value" id="theoryAvg">0</span>/25</p>
+                    <p><strong>Highest:</strong> <span class="stat-value" id="theoryMax">0</span>/25</p>
+                    <p><strong>Lowest:</strong> <span class="stat-value" id="theoryMin">0</span>/25</p>
+                    <p><strong>Passed (≥10):</strong> <span class="stat-value" id="theoryPassed">0</span></p>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Practical Marks</h3>
+                    <p><strong>Average:</strong> <span class="stat-value" id="practicalAvg">0</span>/25</p>
+                    <p><strong>Highest:</strong> <span class="stat-value" id="practicalMax">0</span>/25</p>
+                    <p><strong>Lowest:</strong> <span class="stat-value" id="practicalMin">0</span>/25</p>
+                    <p><strong>Passed (≥10):</strong> <span class="stat-value" id="practicalPassed">0</span></p>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Top 5 Students</h3>
+            <div style="overflow-x: auto;">
+                <table id="topStudentsTable">
+                    <thead>
+                        <tr>
+                            <th>SL No</th>
+                            <th>USN</th>
+                            <th>Theory</th>
+                            <th>Practical</th>
+                            <th>Total</th>
+                            <th>Eligibility</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">Bottom 5 Students</h3>
+            <div style="overflow-x: auto;">
+                <table id="bottomStudentsTable">
+                    <thead>
+                        <tr>
+                            <th>SL No</th>
+                            <th>USN</th>
+                            <th>Theory</th>
+                            <th>Practical</th>
+                            <th>Total</th>
+                            <th>Eligibility</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <h3 class="section-title">All Students</h3>
+            <div style="overflow-x: auto;">
+                <table id="allStudentsTable">
+                    <thead>
+                        <tr>
+                            <th>SL No</th>
+                            <th>USN</th>
+                            <th>Theory</th>
+                            <th>Theory Eligible</th>
+                            <th>Practical</th>
+                            <th>Practical Eligible</th>
+                            <th>Total</th>
+                            <th>Overall Eligible</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pdfUpload = document.getElementById('pdfUpload');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultsSection = document.getElementById('resultsSection');
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            const fileNameDisplay = document.getElementById('fileName');
+            
+            // Update UI when file is selected
+            pdfUpload.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    fileNameDisplay.textContent = this.files[0].name;
+                    analyzeBtn.disabled = false;
+                    errorMsg.style.display = 'none';
+                    successMsg.style.display = 'none';
+                } else {
+                    fileNameDisplay.textContent = 'No file selected';
+                    analyzeBtn.disabled = true;
+                }
+                resultsSection.style.display = 'none';
+            });
+            
+            // Handle form submission
+            analyzeBtn.addEventListener('click', async function() {
+                const file = pdfUpload.files[0];
+                if (!file) {
+                    showError("Please select a PDF file first!");
+                    return;
+                }
+                
+                // Reset UI
+                resetUI();
+                loadingIndicator.style.display = 'block';
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    // Determine the correct API endpoint
+                    const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                        ? 'http://localhost:8000/summarize-marks/'
+                        : '/summarize-marks/';
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        const errorMessage = errorData.detail || 
+                                           errorData.message || 
+                                           `Server error: ${response.status} ${response.statusText}`;
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const data = await response.json();
+                    displayResults(data);
+                    showSuccess("PDF processed successfully!");
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError(`Error: ${error.message}`);
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                }
+            });
+            
+            function resetUI() {
+                errorMsg.style.display = 'none';
+                successMsg.style.display = 'none';
+                resultsSection.style.display = 'none';
+            }
+            
+            function showError(message) {
+                errorMsg.textContent = message;
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+            }
+            
+            function showSuccess(message) {
+                successMsg.textContent = message;
+                successMsg.style.display = 'block';
+                errorMsg.style.display = 'none';
+            }
+            
+            function displayResults(data) {
+                // Display summary stats
+                document.getElementById('totalStudents').textContent = data.total_students;
+                document.getElementById('eligibleCount').textContent = data.eligible_count;
+                document.getElementById('notEligibleCount').textContent = data.not_eligible_count;
+                document.getElementById('passPercentage').textContent = data.pass_percentage;
+                
+                // Display theory stats
+                document.getElementById('theoryAvg').textContent = data.theory_stats.average;
+                document.getElementById('theoryMax').textContent = data.theory_stats.max;
+                document.getElementById('theoryMin').textContent = data.theory_stats.min;
+                document.getElementById('theoryPassed').textContent = data.theory_stats.passed;
+                
+                // Display practical stats
+                document.getElementById('practicalAvg').textContent = data.practical_stats.average;
+                document.getElementById('practicalMax').textContent = data.practical_stats.max;
+                document.getElementById('practicalMin').textContent = data.practical_stats.min;
+                document.getElementById('practicalPassed').textContent = data.practical_stats.passed;
+                
+                // Populate tables
+                populateTable('#topStudentsTable', data.top_students);
+                populateTable('#bottomStudentsTable', data.bottom_students);
+                populateTable('#allStudentsTable', data.all_students, true);
+                
+                resultsSection.style.display = 'block';
+            }
+            
+            function populateTable(tableId, data, showAllColumns = false) {
+                const table = document.querySelector(`${tableId} tbody`);
+                table.innerHTML = '';
+                
+                data.forEach(student => {
+                    const row = document.createElement('tr');
+                    
+                    if (showAllColumns) {
+                        row.innerHTML = `
+                            <td>${student.SL_NO}</td>
+                            <td>${student.USN}</td>
+                            <td>${student.Theory}/25</td>
+                            <td>${student.Theory_Eligible}</td>
+                            <td>${student.Practical}/25</td>
+                            <td>${student.Practical_Eligible}</td>
+                            <td>${student.Total}/50</td>
+                            <td><span class="eligibility-badge ${student.Overall_Eligible === 'Yes' ? 'eligible' : 'not-eligible'}">${student.Overall_Eligible}</span></td>
+                        `;
+                    } else {
+                        row.innerHTML = `
+                            <td>${student.SL_NO}</td>
+                            <td>${student.USN}</td>
+                            <td>${student.Theory}/25</td>
+                            <td>${student.Practical}/25</td>
+                            <td>${student.Total}/50</td>
+                            <td><span class="eligibility-badge ${student.Overall_Eligible === 'Yes' ? 'eligible' : 'not-eligible'}">${student.Overall_Eligible}</span></td>
+                        `;
+                    }
+                    
+                    table.appendChild(row);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
